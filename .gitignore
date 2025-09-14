@@ -1,0 +1,8 @@
+# Project
+configuration/
+porkbun-ddns/
+
+# Python
+venv/
+.ropeproject/
+__pycache__/

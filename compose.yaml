@@ -1,0 +1,8 @@
+services:
+  updater:
+    restart: "on-failure"
+    build:
+      context: .
+
+    volumes:
+      - ./porkbun-ddns:/app/configuration
