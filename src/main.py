@@ -1,5 +1,5 @@
 from pathlib import Path
-import toml, requests
+import toml, requests, time
 
 config = {
     "api": {
@@ -11,6 +11,9 @@ config = {
         "base_domain": "example.com",
         "ddns_subdomain": "ddns",
     },
+    "updater": {
+        "seconds_between_updates": 120
+    }
 }
 
 def init():
@@ -67,6 +70,19 @@ def get_record_id() -> str:
     response = requests.post(url, json=body)
     return str(response.json()["id"])
 
+def get_record_ip(record_id: str) -> str:
+    body = {
+        "apikey": config["api"]["api_key"],
+        "secretapikey": config["api"]["secret_key"],
+    }
+    url = config["api"]["url"] + "/dns/retrieve/" + config["domain"]["base_domain"] + "/" + record_id
+
+    response = requests.post(url, json=body)
+    for record in response.json()["records"]:
+        return record["content"]
+
+    return ""
+
 def update_record(record_id: str, ip: str) -> bool:
     body = {
         "apikey": config["api"]["api_key"],
@@ -91,9 +107,22 @@ if __name__ == "__main__":
 
     record_id = get_record_id()
 
-    if not update_record(record_id, my_ip):
-        print("failed")
-        exit(2)
+    print("starting")
 
-    print("domain record updated")
-    exit(0)
+    while True:
+        my_ip = get_ip()
+        record_ip = get_record_ip(record_id)
+
+        print(f"timestamp: {time.asctime(time.localtime(time.time()))} -> my_ip: {my_ip}, record_ip: {record_ip}")
+
+        if my_ip != record_ip and record_ip != "":
+            print(f"updating ip from {my_ip} to {record_ip}")
+
+            while not update_record(record_id, my_ip):
+                print("retrying")
+
+            print("success")
+
+        time.sleep(config["updater"]["seconds_between_updates"])
+
+    print("closing")
