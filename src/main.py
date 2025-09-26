@@ -116,7 +116,7 @@ if __name__ == "__main__":
         print(f"timestamp: {time.asctime(time.localtime(time.time()))} -> my_ip: {my_ip}, record_ip: {record_ip}")
 
         if my_ip != record_ip and record_ip != "":
-            print(f"updating ip from {my_ip} to {record_ip}")
+            print(f"updating ip from {record_ip} to {my_ip}")
 
             while not update_record(record_id, my_ip):
                 print("retrying")
